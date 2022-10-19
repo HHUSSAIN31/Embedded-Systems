@@ -3,29 +3,29 @@ LAB - 6.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000000  00800100  00800100  00000146  2**0
+  0 .data         00000000  00800100  00800100  0000014e  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         000000d2  00000000  00000000  00000074  2**1
+  1 .text         000000da  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          00000002  00800100  00800100  00000146  2**0
+  2 .bss          00000002  00800100  00800100  0000014e  2**0
                   ALLOC
-  3 .comment      00000030  00000000  00000000  00000146  2**0
+  3 .comment      00000030  00000000  00000000  0000014e  2**0
                   CONTENTS, READONLY
-  4 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00000178  2**2
+  4 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00000180  2**2
                   CONTENTS, READONLY
-  5 .debug_aranges 00000028  00000000  00000000  000001b4  2**0
+  5 .debug_aranges 00000028  00000000  00000000  000001bc  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   000006b1  00000000  00000000  000001dc  2**0
+  6 .debug_info   000006bc  00000000  00000000  000001e4  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 0000062c  00000000  00000000  0000088d  2**0
+  7 .debug_abbrev 0000062c  00000000  00000000  000008a0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   00000217  00000000  00000000  00000eb9  2**0
+  8 .debug_line   00000217  00000000  00000000  00000ecc  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000034  00000000  00000000  000010d0  2**2
+  9 .debug_frame  00000034  00000000  00000000  000010e4  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    0000034e  00000000  00000000  00001104  2**0
+ 10 .debug_str    00000357  00000000  00000000  00001118  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000018  00000000  00000000  00001452  2**0
+ 11 .debug_ranges 00000018  00000000  00000000  0000146f  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -80,7 +80,7 @@ Disassembly of section .text:
   80:	b2 07       	cpc	r27, r18
   82:	e1 f7       	brne	.-8      	; 0x7c <.do_clear_bss_loop>
   84:	0e 94 4f 00 	call	0x9e	; 0x9e <main>
-  88:	0c 94 67 00 	jmp	0xce	; 0xce <_exit>
+  88:	0c 94 6b 00 	jmp	0xd6	; 0xd6 <_exit>
 
 0000008c <__bad_interrupt>:
   8c:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
@@ -91,10 +91,10 @@ int clear;
 
 void setup_adc()
 {
-	ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
+	ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0); // enabling ADEN and prescaler setting to 128 div
   90:	87 e8       	ldi	r24, 0x87	; 135
   92:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <__TEXT_REGION_LENGTH__+0x7f807a>
-	ADMUX = (1<<REFS0);
+	ADMUX = (1<<REFS0) | (0<<REFS1); // setting ADMUX for Avcc with external capacitor
   96:	80 e4       	ldi	r24, 0x40	; 64
   98:	80 93 7c 00 	sts	0x007C, r24	; 0x80007c <__TEXT_REGION_LENGTH__+0x7f807c>
   9c:	08 95       	ret
@@ -111,30 +111,33 @@ int main(void)
   a2:	0e 94 48 00 	call	0x90	; 0x90 <setup_adc>
 	
 	
+	
     while (1) {
-		ADCSRA |= (1<<ADSC);
+		ADCSRA |= (1<<ADSC); // enabling ADSC
   a6:	ea e7       	ldi	r30, 0x7A	; 122
   a8:	f0 e0       	ldi	r31, 0x00	; 0
   aa:	80 81       	ld	r24, Z
   ac:	80 64       	ori	r24, 0x40	; 64
   ae:	80 83       	st	Z, r24
-		while(ADCSRA & (1<<ADSC));
+		while(ADCSRA & (1<<ADSC)); // checking loop until the value is zero
   b0:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7f807a>
   b4:	86 fd       	sbrc	r24, 6
   b6:	fc cf       	rjmp	.-8      	; 0xb0 <main+0x12>
-		PORTD = ADCL;
+		OCR1A = ADCL; // giving output acc to change
   b8:	80 91 78 00 	lds	r24, 0x0078	; 0x800078 <__TEXT_REGION_LENGTH__+0x7f8078>
-  bc:	8b b9       	out	0x0b, r24	; 11
-		clear = ADCH;
-  be:	80 91 79 00 	lds	r24, 0x0079	; 0x800079 <__TEXT_REGION_LENGTH__+0x7f8079>
-  c2:	90 e0       	ldi	r25, 0x00	; 0
-  c4:	90 93 01 01 	sts	0x0101, r25	; 0x800101 <__DATA_REGION_ORIGIN__+0x1>
-  c8:	80 93 00 01 	sts	0x0100, r24	; 0x800100 <__DATA_REGION_ORIGIN__>
+  bc:	90 e0       	ldi	r25, 0x00	; 0
+  be:	90 93 89 00 	sts	0x0089, r25	; 0x800089 <__TEXT_REGION_LENGTH__+0x7f8089>
+  c2:	80 93 88 00 	sts	0x0088, r24	; 0x800088 <__TEXT_REGION_LENGTH__+0x7f8088>
+		clear = ADCH;  // clearing other value and deleting it
+  c6:	80 91 79 00 	lds	r24, 0x0079	; 0x800079 <__TEXT_REGION_LENGTH__+0x7f8079>
+  ca:	90 e0       	ldi	r25, 0x00	; 0
+  cc:	90 93 01 01 	sts	0x0101, r25	; 0x800101 <__DATA_REGION_ORIGIN__+0x1>
+  d0:	80 93 00 01 	sts	0x0100, r24	; 0x800100 <__DATA_REGION_ORIGIN__>
 	}
-  cc:	ec cf       	rjmp	.-40     	; 0xa6 <main+0x8>
+  d4:	e8 cf       	rjmp	.-48     	; 0xa6 <main+0x8>
 
-000000ce <_exit>:
-  ce:	f8 94       	cli
+000000d6 <_exit>:
+  d6:	f8 94       	cli
 
-000000d0 <__stop_program>:
-  d0:	ff cf       	rjmp	.-2      	; 0xd0 <__stop_program>
+000000d8 <__stop_program>:
+  d8:	ff cf       	rjmp	.-2      	; 0xd8 <__stop_program>

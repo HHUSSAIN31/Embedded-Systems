@@ -21,11 +21,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   8 .debug_frame  00000054  00000000  00000000  00001508  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    000003a4  00000000  00000000  0000155c  2**0
+  9 .debug_str    0000039c  00000000  00000000  0000155c  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    000002a3  00000000  00000000  00001900  2**0
+ 10 .debug_loc    000002a3  00000000  00000000  000018f8  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000018  00000000  00000000  00001ba3  2**0
+ 11 .debug_ranges 00000018  00000000  00000000  00001b9b  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -77,20 +77,25 @@ Disassembly of section .text:
 int main(void)
 
 {
-	DDRB = 0xFF;
+	DDRB = 0xFF; // PORT B for LED's
   80:	8f ef       	ldi	r24, 0xFF	; 255
   82:	84 b9       	out	0x04, r24	; 4
-	DDRD = 0x00;
+	DDRD = 0x00; // PORT D for interrupt
   84:	1a b8       	out	0x0a, r1	; 10
-	//uint8_t  a = 0x00;
+	
+	// Setting EICRA values for ISC01 and ISC00 as interrupt INT0(D2) is used
 	EICRA = (0<<ISC01) | (1<<ISC00);
   86:	81 e0       	ldi	r24, 0x01	; 1
   88:	80 93 69 00 	sts	0x0069, r24	; 0x800069 <__TEXT_REGION_LENGTH__+0x7f8069>
+	
+	// setting EIMSK's position 1 element on
 	EIMSK = 0b00000001;
   8c:	8d bb       	out	0x1d, r24	; 29
-	sei();
+	sei(); // sei always after EIMSK to enable interrupt
   8e:	78 94       	sei
-	//DDRD = 0xFF;
+
+	
+	// turning LED on one after another after delay
 	while(1){
 		PORTB = 0b00000100;
   90:	84 e0       	ldi	r24, 0x04	; 4
@@ -139,11 +144,11 @@ int main(void)
   d2:	de cf       	rjmp	.-68     	; 0x90 <main+0x10>
 
 000000d4 <__vector_1>:
-	
-	
 
 }
 
+// when interrupt sensed
+// LED's blinked simultaneously 3 times and then back to normal func
 ISR(INT0_vect){
   d4:	1f 92       	push	r1
   d6:	0f 92       	push	r0
@@ -154,7 +159,6 @@ ISR(INT0_vect){
   e0:	3f 93       	push	r19
   e2:	8f 93       	push	r24
   e4:	9f 93       	push	r25
-	//PORTB = 0x00;
 	PORTB = 0b00000111;
   e6:	87 e0       	ldi	r24, 0x07	; 7
   e8:	85 b9       	out	0x05, r24	; 5
@@ -228,7 +232,7 @@ ISR(INT0_vect){
  15c:	00 c0       	rjmp	.+0      	; 0x15e <__vector_1+0x8a>
  15e:	00 00       	nop
 	_delay_ms(1000);
-	cli();
+	cli();  // disable interrupt
  160:	f8 94       	cli
  162:	9f 91       	pop	r25
  164:	8f 91       	pop	r24

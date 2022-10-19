@@ -13,7 +13,7 @@ int main(void)
 	
 	TIMSK1 = (1<<TOIE1);  // ENABLE the internal interrupt
 	
-	TCCR1B = (0<<CS12) | (1<<CS11) | (1<<CS10);   // used this for spec freq, PRESCALER
+	TCCR1B = (0<<CS12) | (1<<CS11) | (1<<CS10);   // used this for spec freq, PRESCALER(64)
 	sei();
 
 	 

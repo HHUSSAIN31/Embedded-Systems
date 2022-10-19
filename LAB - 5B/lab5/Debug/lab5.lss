@@ -21,11 +21,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   8 .debug_frame  00000024  00000000  00000000  000011b4  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    0000038c  00000000  00000000  000011d8  2**0
+  9 .debug_str    00000390  00000000  00000000  000011d8  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    00000048  00000000  00000000  00001564  2**0
+ 10 .debug_loc    00000048  00000000  00000000  00001568  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000010  00000000  00000000  000015ac  2**0
+ 11 .debug_ranges 00000010  00000000  00000000  000015b0  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -82,31 +82,33 @@ int main(void)
   82:	84 b9       	out	0x04, r24	; 4
   DDRD = 0xFF;
   84:	8a b9       	out	0x0a, r24	; 10
-  TCNT1 = 0;
+  TCNT1 = 0;  // Set timer initially to 0
   86:	10 92 85 00 	sts	0x0085, r1	; 0x800085 <__TEXT_REGION_LENGTH__+0x7f8085>
   8a:	10 92 84 00 	sts	0x0084, r1	; 0x800084 <__TEXT_REGION_LENGTH__+0x7f8084>
   
-  TCCR1A = (1<<COM1A1) | (0<<COM1A0) | (1<<WGM11) | (1<<WGM10);
+  
+  TCCR1A = (1<<COM1A1) | (0<<COM1A0) | (1<<WGM11) | (1<<WGM10); // for timer comparison and fast pwm
   8e:	83 e8       	ldi	r24, 0x83	; 131
   90:	80 93 80 00 	sts	0x0080, r24	; 0x800080 <__TEXT_REGION_LENGTH__+0x7f8080>
-  TCCR1B = (0 << WGM13) | (1<<WGM12) | (0<<CS12) | (1<<CS10);
+  TCCR1B = (0 << WGM13) | (1<<WGM12) | (0<<CS12) | (1<<CS10); // for FAst PWM mode and prescaler
   94:	89 e0       	ldi	r24, 0x09	; 9
   96:	80 93 81 00 	sts	0x0081, r24	; 0x800081 <__TEXT_REGION_LENGTH__+0x7f8081>
   
-  ICR1 = 0x03FF;
+  ICR1 = 0x03FF; // input capture register , measure length of pulse
   9a:	8f ef       	ldi	r24, 0xFF	; 255
   9c:	93 e0       	ldi	r25, 0x03	; 3
   9e:	90 93 87 00 	sts	0x0087, r25	; 0x800087 <__TEXT_REGION_LENGTH__+0x7f8087>
   a2:	80 93 86 00 	sts	0x0086, r24	; 0x800086 <__TEXT_REGION_LENGTH__+0x7f8086>
-  OCR1A = 0xf;
+  OCR1A = 0xf;  // for pin D9(OC1A) output compare register
   a6:	8f e0       	ldi	r24, 0x0F	; 15
   a8:	90 e0       	ldi	r25, 0x00	; 0
   aa:	90 93 89 00 	sts	0x0089, r25	; 0x800089 <__TEXT_REGION_LENGTH__+0x7f8089>
   ae:	80 93 88 00 	sts	0x0088, r24	; 0x800088 <__TEXT_REGION_LENGTH__+0x7f8088>
   
+  // making brightness high and low in a loop
   while(1)
   {
-	  OCR1A += 10;
+	  OCR1A += 10; 
   b2:	e8 e8       	ldi	r30, 0x88	; 136
   b4:	f0 e0       	ldi	r31, 0x00	; 0
   b6:	80 81       	ld	r24, Z
@@ -131,6 +133,7 @@ int main(void)
   d0:	00 00       	nop
 	  _delay_ms(50);
 	  
+	  // if max, make led brightness low again
 	  if(OCR1A >= 0x03FF)
   d2:	80 81       	ld	r24, Z
   d4:	91 81       	ldd	r25, Z+1	; 0x01
@@ -138,7 +141,6 @@ int main(void)
   d8:	93 40       	sbci	r25, 0x03	; 3
   da:	58 f3       	brcs	.-42     	; 0xb2 <main+0x32>
 	  {
-		  
 		  OCR1A = 0xf;
   dc:	8f e0       	ldi	r24, 0x0F	; 15
   de:	90 e0       	ldi	r25, 0x00	; 0

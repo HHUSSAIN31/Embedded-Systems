@@ -10,6 +10,7 @@ int main(void)
 	
 	PORTB = 0xFF;
 	
+	//Toggle and FAST 
 	TCCR1A = (0 << COM1A1)|(1 << COM1A0)|(0 << WGM11)|(0 << WGM10);
 	TCCR1B = (1 << WGM12)|(1<< CS12)|(0 << CS10);
 	

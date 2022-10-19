@@ -8,13 +8,14 @@ int clear;
 void setup_adc()
 {
 	ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0); // enabling ADEN and prescaler setting to 128 div
-	ADMUX = (1<<REFS0); // setting ADMUX
+	ADMUX = (1<<REFS0) | (0<<REFS1); // setting ADMUX for Avcc with external capacitor
 }
 
 int main(void)
 {
 	DDRD = 0xFF;
 	setup_adc();
+	
 	
 	
     while (1) {
